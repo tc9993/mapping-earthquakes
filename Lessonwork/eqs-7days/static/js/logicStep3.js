@@ -51,25 +51,89 @@ L.control.layers(baseMaps).addTo(map);
 //let torontoHoods = 'https://raw.githubusercontent.com/tc9993/mapping-earthquakes/mapping-polygons/Lessonwork/mapping-polygons/static/js/torontoNeighborhoods.json';
 let eqData = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson';
 
-let myStyle = {
-    color: '#ffffa1',
-    weight:2
+
+//returns style data for each eq we plot, must pass magnitude into function
+function styleInfo(feature){
+    return{
+        opacity: 1,
+        fillOpacity: 1,
+        fillColor: getColor(feature.properties.mag),
+        color: "#000000",
+        radius: getRadius(feature.properties.mag),
+        stroke: true,
+        weight: 0.5
+    };
 }
+
+// This function determines the color of the circle based on the magnitude of the earthquake.
+function getColor(magnitude) {
+    if (magnitude > 5) {
+      return "#ea2c2c";
+    }
+    else if (magnitude > 4) {
+      return "#ea822c";
+    }
+    else if (magnitude > 3) {
+      return "#ee9c00";
+    }
+    else if (magnitude > 2) {
+      return "#eecc00";
+    }
+    else if (magnitude > 1) {
+      return "#d4ee00";
+    }
+    else {
+        return "#98ee00";
+    }
+}
+
+
+function getRadius(magnitude){
+    if(magnitude === 0){
+        return 1
+    }
+    return magnitude * 4;
+}
+
 
 //grabbing our GeoJSON data
 d3.json(eqData).then(function(data){
     console.log(data);
     //create geojson layer w/ data
-    L.geoJson(data//, {
-        // style: myStyle,
-        // onEachFeature: function(feature, layer){
-        //     layer.bindPopup('<h3> Airline: ' + feature.properties.airline + '</h3> <hr><h3> Destination: ' + feature.properties.dst + '</h3>');
-        // }
-    //}
-    ).addTo(map)
+    L.geoJson(data, {
+        pointToLayer: function(feature, latlng){
+            console.log(data);
+            return L.circleMarker(latlng);
+        },
+        style: styleInfo,
+        //create popup for each marker to display mag and locale of eq
+        onEachFeature: function(feature,layer){
+            layer.bindPopup('Magnitude: ' + feature.properties.mag + "<br>Location: " + feature.properties.place);
+        }
+    }).addTo(map)
 });
 
+
+// //grabbing our GeoJSON data
+// d3.json(eqData).then(function(data){
+//     console.log(data);
+//     //create geojson layer w/ data
+//     L.geoJson(data, {
+//         style: myStyle,
+//         onEachFeature: function(feature, layer){
+//             layer.bindPopup('<h3> Airline: ' + feature.properties.airline + '</h3> <hr><h3> Destination: ' + feature.properties.dst + '</h3>');
+//         }
+//     }
+//     ).addTo(map)
+// });
+
 //-----------------------------------------------------------------------13.5.4 ^
+
+// let myStyle = {
+//     color: '#ffffa1',
+//     weight:2
+// }
+
 // //add our 'graymap' tile layer to the map
 // streets.addTo(map);
 
